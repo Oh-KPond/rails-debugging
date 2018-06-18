@@ -78,9 +78,14 @@ class EventsController < ApplicationController
     result = EventEditor.new(current_user, params).create
     @event = result.event
 
+    @events = Event.upcoming.published_or_visible_to(current_user)
+                .includes(:location, :region, :chapter, :organization, event_sessions: :location)
+    @event_regions = @events.map(&:region).compact.uniq
+
     flash[:notice] = result.notice if result.notice
     if result.render
       render result.render
+    # Jackie's solution - redirect_to action: "index"
     else
       redirect_to result.event
     end
